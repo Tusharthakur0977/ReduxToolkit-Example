@@ -1,4 +1,6 @@
+/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable @typescript-eslint/no-shadow */
+import React, {FC, useEffect, useState} from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -8,20 +10,23 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {FC, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {addToCart, removeFromCart} from './redux/action';
 import {ProductsType} from '../Data/ProductsData';
+import {addToCart, removeFromCart} from './redux/slices/CartSlice';
+import {RootState} from './redux/store';
+import Icon from 'react-native-vector-icons/AntDesign';
 
 export type ProductProps = {
   product: ProductsType;
 };
 const Product: FC<ProductProps> = ({product}) => {
   const dispatch = useDispatch();
-  const cartItems = useSelector(state => state.reducer);
+  const cartItems = useSelector((state: RootState) => state.cart);
+
   const [isAdded, setIsAdded] = useState(false);
   const [loadingAdd, setLoadingAdd] = useState(false);
   const [loadingRemove, setLoadingRemove] = useState(false);
+  const [count, setCount] = useState(1);
 
   const handleAddToCart = (product: ProductsType) => {
     setLoadingAdd(true);
@@ -34,21 +39,22 @@ const Product: FC<ProductProps> = ({product}) => {
   const handleRemoveFromCart = (product: ProductsType) => {
     setLoadingRemove(true);
     setTimeout(() => {
-      dispatch(removeFromCart(product.name));
+      dispatch(removeFromCart(product.id));
+      console.log('Removing ID:', product.id);
       setLoadingRemove(false);
     }, 2000);
   };
 
   useEffect(() => {
-    let result = cartItems.filter((data: ProductsType) => {
-      return data.name === product.name;
+    let result = cartItems.filter(data => {
+      return data.id === product.id;
     });
     if (result.length) {
       setIsAdded(true);
     } else {
       setIsAdded(false);
     }
-  }, [cartItems, product.name]);
+  }, [cartItems, product.id]);
 
   return (
     <ScrollView style={styles.container}>
@@ -68,15 +74,43 @@ const Product: FC<ProductProps> = ({product}) => {
             {product.price}
           </Text>
           {isAdded ? (
-            <TouchableOpacity
-              style={styles.rmvbtn}
-              onPress={() => handleRemoveFromCart(product)}>
-              {loadingRemove ? (
-                <ActivityIndicator size="small" color="#000" />
-              ) : (
-                <Text style={styles.btntext}>Remove From Cart</Text>
-              )}
-            </TouchableOpacity>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+              }}>
+              <TouchableOpacity
+                style={styles.rmvbtn}
+                onPress={() => handleRemoveFromCart(product.id)}>
+                {loadingRemove ? (
+                  <ActivityIndicator size="small" color="#000" />
+                ) : (
+                  <Text style={styles.btntext}>Remove From Cart</Text>
+                )}
+              </TouchableOpacity>
+              <View style={styles.qtyBtn}>
+                <TouchableOpacity
+                  style={styles.minus}
+                  onPress={() => {
+                    if (count > 0) {
+                      setCount(count - 1);
+                    }
+                  }}>
+                  <Icon name="minus" color={'black'} />
+                </TouchableOpacity>
+                <Text style={{color: 'black', fontWeight: '500', fontSize: 20}}>
+                  {count}
+                </Text>
+                <TouchableOpacity
+                  style={styles.plus}
+                  onPress={() => {
+                    setCount(count + 1), handleAddToCart;
+                  }}>
+                  <Icon name="plus" color={'black'} />
+                </TouchableOpacity>
+              </View>
+            </View>
           ) : (
             <TouchableOpacity
               style={styles.btn}
@@ -152,5 +186,31 @@ const styles = StyleSheet.create({
     width: 130,
     alignItems: 'center',
     borderRadius: 10,
+  },
+  minus: {
+    borderWidth: 1,
+    marginVertical: 13,
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+    width: 30,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  plus: {
+    borderWidth: 1,
+    marginVertical: 13,
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+    width: 30,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  qtyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    justifyContent: 'flex-end',
+    flex: 1,
+    marginHorizontal: 5,
   },
 });

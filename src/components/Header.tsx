@@ -1,18 +1,16 @@
+import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {useSelector} from 'react-redux';
 import Icon from 'react-native-vector-icons/AntDesign';
+import {useSelector} from 'react-redux';
+import {RootState} from './redux/store';
 
 const Header = () => {
-  const cartData = useSelector(state => state.reducer);
-  const [cartItems, setCartItems] = useState(0);
-  useEffect(() => {
-    setCartItems(cartData.length);
-  }, [cartData]);
+  const cartItems = useSelector((state: RootState) => state.cart);
 
-  const cart = () => {
-    console.warn(cartData);
-  };
+  console.log(cartItems);
+
+  const cart = () => {};
+
   return (
     <View style={styles.headerContainer}>
       <Text style={styles.titleText}>Product List</Text>
@@ -23,7 +21,7 @@ const Header = () => {
         color={'black'}
         onPress={cart}
       />
-      <Text style={styles.countText}>{cartItems}</Text>
+      <Text style={styles.countText}>{cartItems.length}</Text>
     </View>
   );
 };
